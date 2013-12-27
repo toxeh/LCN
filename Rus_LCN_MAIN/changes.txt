@@ -1,0 +1,136 @@
+Все отлично!
+	Точки в датах
+	Нормальное время в пути
+	Номальная надписть "Проверка даты..."
+	Переведены надвиси при сбросе времени, расхода, скорости
+	Заменена графическая кнопка на "ДА" в файле для сбороса параметров
+	
+Ищем час(시간) DCC204AC2000 Смещение CE9B8 и CE9C4
+Вместо этого говна подставляем двоеточие после него забиваем все нулями (без пробела) получаем 3A0000000000
+
+По смещению 71A9C делаем безусловный переход на отображение десятков минут
+	.text:0008269C                 bnez    $v0, loc_826FC
+	17 00 40 14 заменяем на 17 00 00 10
+По смещению 71958 делаем безусловный переход на отображение часов
+	.text:00082558                 bnez    $v0, loc_825B8
+	17 00 40 14 заменяем на 17 00 00 10
+
+Ищем минуты (%d분) 2500320084BD Смещение CE9D8 заменяем на %d  2500640000000000 причем сделать это на смещении (-2) - CE9D6
+
+.data:000DFBD8 aD_7:                                    # DATA XREF: sub_824B8+2A0o
+.data:000DFBD8                 unicode 0, <%d>
+.data:000DFBDC aD_29:          .ascii "Ä-"<0>
+.data:000DFBDF                 .align 4
+Идем sub_824B8+2A0o смещение 71B58 .text:00082758                 addiu   $a1, $v0, (aD_7 - 0xE0000)  # "%d" байткод D8 FB 45 24
+и заменяем его D6 FB 45 24
+
+
+Обращения к "Проверьте дату" нужно сместить все на 1-е
+
+CEA90
+.data:000DFC90 aCheckingDate__:                         # DATA XREF: sub_834E8+78o
+.data:000DFC90                 unicode 0, <Checking Date..>,0
+CEAB0
+.data:000DFCB0 aA:             .ascii "à--ã "<0>        # DATA XREF: sub_834E8+F0o
+.data:000DFCB6 aUX:            .ascii "Uãx¦ "<0>
+.data:000DFCBC                 .word 0x2EC911, 0x2E
+CEAC4
+.data:000DFCC4 aA_0:           .ascii "à--ã "<0>        # DATA XREF: sub_834E8+11Co
+.data:000DFCCA aUX_0:          .ascii "Uãx¦ "<0>
+.data:000DFCD0                 .word 0x2EC911, 0x2E
+
+sub_834E8+78o Смещение 72960 код  addiu   $a1, $v0, (aCheckingDate__ - 0xE0000)  # "Checking Date.."    байткод 90 FC 45 24
+sub_834E8+F0o Смещение 729D8 код   addiu   $a1, $v0, (aA - 0xE0000)  # "à--ã "                          байткод B0 FC 45 24
+sub_834E8+11CoСмещение 72A04 код addiu   $a1, $v0, (aA_0 - 0xE0000)  # "à--ã "                          байткод C4 FC 45 24
+Меняем последние 2 на такой же как и первый
+날짜 확인 중..
+Проверка даты...
+Физ смещение в файле CEA90 заменил на русское 1F0440043E043204350440043A04300420003404300442044B042E002E002E00
+
+Ну и год месяц день ( 년  월 일)  нужно заменить 
+Физ смешение CEAD8  вот 2500730044B125007300D4C6250073007CC70000 меняем на 250073002E00250073002E002500730000000000
+
+
+Вывод даты года 72AAC
+.text:000836AC                 addiu   $a1, $v0, (aS_11 - 0xE0000)  # "%s"
+.text:000836B0                 addiu   $a0, $fp, 0x68+var_50  # Add Immediate Unsigned
+.text:000836B4                 jal     mfcce400_1177    # Jump And Link
+.text:000836B8                 nop
+.text:000836BC                 addiu   $a0, $fp, 0x68+var_34  # Add Immediate Unsigned
+.text:000836C0                 jal     mfcce400_299     # Jump And Link
+.text:000836C4                 nop
+.text:000836C8                 addiu   $a0, $fp, 0x68+var_38  # Add Immediate Unsigned
+.text:000836CC                 jal     mfcce400_299     # Jump And Link
+.text:000836D0                 nop
+.text:000836D4                 addiu   $a0, $fp, 0x68+var_3C  # Add Immediate Unsigned
+.text:000836D8                 jal     mfcce400_299     # Jump And Link
+.text:000836DC                 nop
+.text:000836E0
+
+
+
+
+
+
+.text:0008367C                 nop
+72A80
+.text:00083680                 sw      $v0, 0x68+var_10($fp)  # Store Word
+.text:00083684                 lw      $v0, 0x68+var_10($fp)  # Load Word
+.text:00083688                 sw      $v0, 0x68+var_C($fp)  # Store Word
+.text:0008368C                 lw      $v0, 0x68+var_1C($fp)  # Load Word 4C 00 C2 8F (меняем на 5C 00 C2 8F)
+.text:00083690                 lw      $v0, 0($v0)      # Load Word
+.text:00083694                 sw      $v0, 0x68+var_58($sp)  # Store Word
+.text:00083698                 lw      $v0, 0x68+var_14($fp)  # Load Word 54 00 C2 8F
+.text:0008369C                 lw      $a3, 0($v0)      # Load Word
+.text:000836A0                 lw      $v0, 0x68+var_C($fp)  # Load Word 5C 00 C2 8F (меняем на 4C 00 C2 8F)
+.text:000836A4                 lw      $a2, 0($v0)      # Load Word
+.text:000836A8                 lui     $v0, 0xE         # Load Upper Immediate
+.text:000836AC                 addiu   $a1, $v0, (aS_S_S - 0xE0000)  # "%s.%s.%s"
+
+
+В файле еще куча иероглифов осталась. Будет время - буду дальше переводить.
+Если хотите - можете пожертвовать на развитие (на карту сбербанка 4276 8383 4170 5061 или мобильный телефон +7 965 210-20-02 (билайн))
+
+
+Убиарем иероглифы в диалоговых окнах БК (сбросы)
+Есть код
+.data:000DFA98 aBg_trip_popu_0:.ascii "BG_TRIP_POPUP"<0>  # DATA XREF: sub_811EC+FCo
+.data:000DFAA6                 .align 2
+.data:000DFAA8 aRnn:           .ascii "ãLðíÍ+-¦"<0>     # DATA XREF: sub_811EC+10Co
+.data:000DFAB1                 .align 2
+.data:000DFAB4 aRnn_0:         .ascii "ãLðíÍ+-¦|¦ "<0>  # DATA XREF: sub_811EC+180o
+.data:000DFAC0 aOa0:           .ascii "Lã\bîÀ-0T"<0>
+.data:000DFAC9                 .align 2
+.data:000DFACC aBg_trip_popu_1:.ascii "BG_TRIP_POPUP"<0>  # DATA XREF: sub_814A8+FCo
+.data:000DFADA                 .align 2
+.data:000DFADC dword_DFADC:    .word 0xD589C8FC, 0xAC04C2DC, 0  # DATA XREF: sub_814A8+10Co
+.data:000DFAE8 dword_DFAE8:    .word 0xD589C8FC, 0xAC04C2DC, 0x20C744, 0xAE08C9C0, 0xD130BD80
+.data:000DFAE8                                          # DATA XREF: sub_814A8+180o
+.data:000DFAE8                 .word 0
+.data:000DFB00 aBg_trip_popu_2:.ascii "BG_TRIP_POPUP"<0>  # DATA XREF: sub_81768+FCo
+.data:000DFB0E                 .align 4
+.data:000DFB10 dword_DFB10:    .word 0xADE0D3C9, 0xBE44C5F0, 0  # DATA XREF: sub_81768+10Co
+.data:000DFB1C dword_DFB1C:    .word 0xADE0D3C9, 0xBE44C5F0, 0x20B97C, 0xAE08C9C0, 0xD130BD80
+.data:000DFB1C                                          # DATA XREF: sub_81768+180o
+.data:000DFB1C                 .word 0
+
+1. меняем повторные ссылки в коде с CE898 и CE8CC на CE900
+Правильный код по адресу 706EB = 98 FA 45 24
+Такой же код (98 FA 45 24) ставим на 709A4 (вместо CC FA 45 24) и 70C64 (вместо 00 FB 45 24)
+
+Теперь у нас есть место с CE8A8 по CE91C
+скорость - CE8A8 и CE8B4 код 706F8 (A8 FA 45 24) и 7076C (B4 FA 45 24) первый ок - вторая сломался
+по замена с CE8A8 на 21043A043E0440043E04410442044C040000 (скорость)
+по 7076C с B4 FA 45 24 на CC FA 45 24
+время  -   CE8DC и CE8E8 код 709B4 (DC FA 45 24) и 70A28 (E8 FA 45 24) первый ок и второй ок (остался)
+по замена с CE900 на 1204400435043C044F04000000 (время) 
+по 709B4 с DC FA 45 24 на 00 FB 45 24
+по 70A28 с E8 FA 45 24 на CC FA 45 24
+расход -   CE910 и CE91C код 70C74 (10 FB 45 24) и 70CE8 (1C FB 45 24) первый ок - вторая сломался
+по замена с CE910 на 20043004410445043E0434040000 (расход)
+по 70CE8 с 1C FB 45 24 на CC FA 45 24
+на CE8CC замена на 2104310440043E044104380442044C04200037043D043004470435043D04380435043F000000 (Сбросить значение?)
+Заменяем по CE5E8  C4ACB0C058D5DCC2A0ACB5C2C8B24CAE3F на 2000000000000000000000000000000000
+평균연비 - Диалоговое окно сброс "Средний расход топлива"
+
+
